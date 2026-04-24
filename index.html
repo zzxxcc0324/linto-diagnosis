@@ -72,11 +72,6 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif
 .reset-btn:hover{background:#eee}
 
 .error-msg{background:#FCEBEB;color:#A32D2D;border-radius:10px;padding:16px;font-size:13px;margin-top:12px;display:none;line-height:1.6}
-.api-key-bar{background:#fff;border:1px solid #e8e5e0;border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:center}
-.api-key-bar input{flex:1;border:1px solid #e8e5e0;border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;outline:none;background:#fafafa}
-.api-key-bar input:focus{border-color:#5DD9C0}
-.api-key-bar button{background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
-.api-key-saved{font-size:11px;color:#5DD9C0;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -88,13 +83,6 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif
 </div>
 
 <div class="container">
-
-  <!-- API 키 설정 -->
-  <div class="api-key-bar">
-    <input id="api-key-input" type="password" placeholder="Anthropic API 키 입력 (sk-ant-...)">
-    <button onclick="saveKey()">저장</button>
-    <span class="api-key-saved" id="key-saved" style="display:none">✓ 저장됨</span>
-  </div>
 
   <!-- 입력 폼 -->
   <div id="form-wrap">
@@ -219,29 +207,88 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif
 </div>
 
 <script>
-// API 키 저장/불러오기
-(function(){
-  const saved = localStorage.getItem('linto_api_key');
-  if(saved){ document.getElementById('api-key-input').value = saved; document.getElementById('key-saved').style.display='inline'; }
-})();
-function saveKey(){
-  const k = document.getElementById('api-key-input').value.trim();
-  if(k){ localStorage.setItem('linto_api_key', k); document.getElementById('key-saved').style.display='inline'; }
+function generateDiagnosis(hospital, dept, platform, period, subs, views, freq, contentType, concern) {
+  let score = 55;
+  score += ({  '유튜브 + 인스타': 12, '유튜브만': 5, '인스타그램만': 3, '아직 없음 (새로 시작)': -15 }[platform] || 0);
+  score += ({ '1년 이상': 10, '6개월~1년': 6, '3~6개월': 2, '1~3개월': -4, '1개월 미만': -10 }[period] || 0);
+  score += ({ '환자 고민 해결 / 공감형': 15, '원장님 의학 정보 강의형': 10, '비포&애프터 케이스': 5, '브이로그 / 일상형': 0, '시술 소개 / 병원 광고형': -15, '아직 콘텐츠 없음': -20 }[contentType] || 0);
+  const subsNum = parseInt((subs || '0').replace(/[^0-9]/g, '')) || 0;
+  if (subsNum > 10000) score += 15; else if (subsNum > 1000) score += 10; else if (subsNum > 300) score += 5; else if (subsNum > 0 && subsNum <= 100) score -= 5;
+  score = Math.max(12, Math.min(92, score));
+
+  const gp = score >= 70 ? '상' : score >= 45 ? '중' : '하';
+  const urgency = score < 40 ? '즉시 개선 필요' : score < 65 ? '단계적 개선' : '현행 유지';
+
+  const summaryMap = {
+    '시술 소개 / 병원 광고형': `${hospital}의 채널은 현재 광고성 콘텐츠 위주로 운영되고 있어 알고리즘 노출과 시청자 반응 모두 낮은 상태입니다. ${dept} 분야에서 환자들이 실제로 검색하는 고민 해결형 콘텐츠로의 전환이 핵심 과제입니다. 방향성을 바꾸면 3개월 내 가시적인 성장이 가능합니다.`,
+    '환자 고민 해결 / 공감형': `${hospital}은 환자 공감형 콘텐츠를 운영 중으로 알고리즘 친화적인 방향을 잘 잡고 있습니다. ${dept} 분야에서 검색 유입을 극대화하려면 제목과 썸네일 최적화, 업로드 주기 안정화가 병행되어야 합니다. 현재 기반을 유지하며 최적화에 집중하면 빠른 성장이 기대됩니다.`,
+    '원장님 의학 정보 강의형': `${hospital}의 의학 정보 강의형 콘텐츠는 전문성과 신뢰를 구축하는 데 효과적입니다. ${dept} 원장님의 전문 지식을 환자 눈높이에 맞는 언어로 전달하는 것이 핵심이며, 검색 키워드 기반의 제목 설정이 조회수 상승의 열쇠입니다. SEO 최적화를 병행하면 빠른 채널 성장이 가능합니다.`,
+    '비포&애프터 케이스': `${hospital}의 비포&애프터 콘텐츠는 시술 결과를 직관적으로 보여줘 잠재 환자의 신뢰를 높이는 강점이 있습니다. ${dept} 특성상 케이스 설명에 교육적 요소를 더해야 알고리즘 노출이 향상됩니다. 스토리텔링 강화와 검색 최적화를 병행하면 문의 전환율을 크게 높일 수 있습니다.`,
+    '브이로그 / 일상형': `${hospital}의 브이로그형 콘텐츠는 병원 분위기와 신뢰감 전달에 유용하지만, 검색 알고리즘에서 노출되기 어려운 구조입니다. ${dept}를 찾는 잠재 환자들이 검색하는 키워드와 고민을 반영한 콘텐츠 믹스 전략이 필요합니다. 정보형 콘텐츠를 30% 이상 혼합하면 균형 잡힌 성장이 가능합니다.`,
+    '아직 콘텐츠 없음': `${hospital}은 아직 채널 운영을 시작하지 않아 처음부터 올바른 전략으로 시작할 수 있는 유리한 위치에 있습니다. ${dept} 분야 경쟁 채널 분석을 바탕으로 차별화된 콘텐츠 포지셔닝을 잡는 것이 첫 단계입니다. 초반 3개월의 방향 설정이 채널 전체 성패를 결정하므로 전략적 접근이 필요합니다.`
+  };
+  const diagnosis_summary = summaryMap[contentType] || `${hospital} ${dept} 채널 진단을 완료했습니다. 현재 상태를 분석한 결과 핵심 개선 포인트가 도출되었습니다. 아래 액션 플랜을 순서대로 실행하면 3개월 내 유의미한 성과를 기대할 수 있습니다.`;
+
+  const problems = [];
+  if (contentType === '시술 소개 / 병원 광고형') problems.push({ priority: '높음', title: '광고성 콘텐츠 구조', desc: `시술 소개 위주 콘텐츠는 유튜브·인스타 알고리즘에서 낮은 평가를 받습니다. 잠재 환자가 검색하는 고민 해결형 콘텐츠로 전환하면 노출량이 3~5배 증가할 수 있습니다.` });
+  if (contentType === '아직 콘텐츠 없음') problems.push({ priority: '높음', title: '콘텐츠 부재', desc: `운영 중인 콘텐츠가 없어 검색 노출 및 잠재 환자 유입이 전무합니다. 경쟁 병원 대비 디지털 접점이 없으므로 빠른 시작이 필요합니다.` });
+  const cp = { '조회수가 너무 낮아요': { priority: '높음', title: '썸네일·제목 최적화 부재', desc: '조회수 저하의 가장 큰 원인은 낮은 클릭률(CTR)입니다. 환자 검색 의도와 맞지 않는 제목과 시술명 위주 썸네일이 클릭을 막고 있습니다.' }, '구독자/팔로워가 안 늘어요': { priority: '높음', title: '채널 정체성 불명확', desc: '구독자가 늘지 않는 것은 채널 포지셔닝이 불명확하거나 콘텐츠 편차가 크기 때문입니다. 특정 시청자 타겟을 정하고 일관된 방향성을 잡아야 합니다.' }, '영상 올려도 문의가 없어요': { priority: '높음', title: 'CTA 및 전환 설계 미흡', desc: '조회수와 문의 사이의 연결고리(CTA)가 부족합니다. 영상 내 상담 유도 멘트, 링크 배치, 카카오채널 연동 등 전환 설계가 필요합니다.' }, '어떤 콘텐츠를 해야 할지 모르겠어요': { priority: '중간', title: '콘텐츠 전략 부재', desc: '데이터 없이 감으로 콘텐츠를 만들고 있어 효율이 낮습니다. 경쟁 채널 분석과 키워드 리서치 기반의 콘텐츠 캘린더 수립이 필요합니다.' }, '업체를 써봤는데 효과가 없었어요': { priority: '중간', title: '제작-전략 불일치', desc: '영상 제작과 마케팅 전략이 분리되어 있어 효과가 반감됩니다. 기획 단계부터 검색 최적화와 전환을 고려한 통합 전략이 필요합니다.' }, '채널을 새로 시작하고 싶어요': { priority: '중간', title: '채널 포지셔닝 설계 필요', desc: '새 채널 시작 전 경쟁 분석과 차별화 포인트 설정이 선행되어야 합니다. 초반 3개월의 방향이 채널 전체 성장 궤도를 결정합니다.' } };
+  if (cp[concern]) problems.push(cp[concern]);
+  if (platform === '아직 없음 (새로 시작)' || !platform) problems.push({ priority: '중간', title: '디지털 채널 부재', desc: `운영 중인 ${dept} 채널이 없어 온라인 신뢰 구축이 어렵습니다. 유튜브 또는 인스타그램 중 하나를 먼저 집중 공략하는 전략을 추천합니다.` });
+  if (problems.length === 0) problems.push({ priority: '낮음', title: '업로드 일관성 강화', desc: '꾸준한 업로드 주기를 유지하면 알고리즘 노출 빈도가 높아집니다. 월 최소 4회 이상 규칙적인 업로드를 목표로 하세요.' });
+
+  const strengths = [];
+  const cs = { '환자 고민 해결 / 공감형': { title: '공감형 콘텐츠 방향성', desc: '환자 고민 해결형 콘텐츠는 알고리즘 친화적이며 잠재 환자의 검색 의도와 일치합니다. 이 방향성은 유지하되 SEO를 강화하면 됩니다.' }, '원장님 의학 정보 강의형': { title: '전문성 기반 신뢰 콘텐츠', desc: '의학 정보 강의형은 원장님의 전문성을 드러내 브랜드 신뢰도를 높입니다. 잠재 환자가 병원을 선택할 때 큰 영향을 미치는 요소입니다.' }, '비포&애프터 케이스': { title: '결과 중심 신뢰 구축', desc: '실제 케이스를 보여주는 콘텐츠는 잠재 환자의 의사결정을 돕는 강력한 도구입니다. 시술 결과를 직접 확인할 수 있어 문의 전환율이 높습니다.' } };
+  if (cs[contentType]) strengths.push(cs[contentType]);
+  if (period === '1년 이상' || period === '6개월~1년') strengths.push({ title: '운영 데이터 축적', desc: '쌓인 채널 히스토리는 새 채널 대비 알고리즘 신뢰도가 높습니다. 이 자산을 활용한 최적화가 가능합니다.' });
+  if (platform === '유튜브 + 인스타') strengths.push({ title: '멀티플랫폼 운영', desc: '유튜브와 인스타그램을 함께 운영하면 검색 유입과 팔로워 유입을 동시에 노릴 수 있습니다. 콘텐츠 리퍼포징으로 제작 효율도 높일 수 있습니다.' });
+  strengths.push({ title: `${dept} 콘텐츠 수요 보유`, desc: `${dept}은 온라인 검색 수요가 높은 분야로, 제대로 된 전략을 적용하면 빠른 성장이 가능합니다. 유튜브·인스타 모두 관련 키워드 검색량이 꾸준합니다.` });
+
+  const apMap = {
+    '시술 소개 / 병원 광고형': [
+      { week: '1-2주차', title: '콘텐츠 방향 전환 기획', desc: '경쟁 채널 상위 영상 10개를 분석해 환자들이 자주 검색하는 고민 키워드 20개를 추출합니다. 기존 시술 소개 콘텐츠를 환자 고민 해결형으로 리포지셔닝하는 기획안을 작성하세요.' },
+      { week: '3-4주차', title: '키워드 기반 영상 2편 제작', desc: '추출한 키워드 중 검색량 상위 2개 주제로 영상을 제작합니다. 제목에 환자 검색어를 그대로 넣고, 썸네일은 숫자+감정 조합으로 구성하세요.' },
+      { week: '2개월차', title: 'CTA 및 전환 흐름 세팅', desc: '모든 영상 마지막 30초에 상담 유도 멘트를 추가하고, 카카오채널 링크를 영상 설명란 첫 줄에 배치합니다. 인스타 스토리와 유튜브를 연계한 교차 노출도 시작하세요.' },
+      { week: '3개월차', title: '성과 분석 및 확장', desc: '3개월간 제작한 영상의 조회수·클릭률·체류시간 데이터를 분석합니다. 성과가 좋은 주제 패턴을 찾아 월 4~6편 규모로 콘텐츠를 확장하세요.' }
+    ],
+    '환자 고민 해결 / 공감형': [
+      { week: '1-2주차', title: '썸네일·제목 A/B 테스트', desc: '기존 업로드 영상의 썸네일을 환자 감정 키워드가 담긴 버전으로 교체 테스트합니다. 제목은 "OO하면 OO된다" 패턴으로 클릭률을 높이세요.' },
+      { week: '3-4주차', title: '상위 노출 키워드 공략', desc: `유튜브 검색창에 ${dept} 관련 키워드를 입력해 자동완성 검색어를 수집합니다. 월 검색량 1,000~10,000 구간의 중간 경쟁 키워드로 영상 2편을 제작하세요.` },
+      { week: '2개월차', title: '카카오채널 연동 및 CTA 강화', desc: '영상 내 카카오채널 링크를 적극 노출하고, 영상 종료 후 상담 신청으로 이어지는 전환 흐름을 만듭니다. 인스타 스토리에 "자세히 보기" 링크를 연결하세요.' },
+      { week: '3개월차', title: '조회수 상위 패턴 반복', desc: '3개월 데이터에서 조회수 상위 30% 영상의 공통점을 분석합니다. 주제·제목 패턴·길이·업로드 요일 등을 표준화해 콘텐츠 제작 효율을 높이세요.' }
+    ]
+  };
+  const defaultAP = [
+    { week: '1-2주차', title: '채널 현황 감사 및 키워드 리서치', desc: `${dept} 분야 경쟁 채널 상위 10개를 분석하고, 환자들이 자주 검색하는 키워드 20개를 추출합니다. 현재 채널의 썸네일·제목·설명을 함께 점검하세요.` },
+    { week: '3-4주차', title: '핵심 콘텐츠 2편 제작', desc: '리서치한 키워드 중 검색량이 높고 경쟁이 중간인 주제 2개로 영상을 제작합니다. 제목에 검색 키워드를 그대로 넣고, 썸네일은 텍스트+감정 얼굴 조합으로 구성하세요.' },
+    { week: '2개월차', title: '전환 흐름 구축', desc: '모든 콘텐츠에 카카오채널 상담 링크를 추가하고, 영상 마지막 30초에 CTA 멘트를 넣습니다. 인스타와 유튜브를 교차 연동해 팔로워 유입 경로를 다각화하세요.' },
+    { week: '3개월차', title: '데이터 기반 최적화', desc: '3개월간 쌓인 데이터에서 성과 좋은 콘텐츠 패턴을 분석합니다. 조회수·클릭률·문의 전환율 기준으로 다음 분기 콘텐츠 전략을 수립하세요.' }
+  ];
+
+  const expectedMap = {
+    '상': `3개월 후 구독자/팔로워 3배 이상 성장과 월 5건 이상의 채널 유입 문의를 기대할 수 있습니다. 검색 노출 키워드가 10개 이상 확보되며, 영상 평균 조회수도 현재 대비 2~3배 향상될 것입니다.`,
+    '중': `3개월 후 구독자/팔로워 50% 이상 성장과 월 2~3건의 채널 유입 문의 발생을 기대할 수 있습니다. 핵심 키워드 5개 이상 상위 노출 확보 및 영상 평균 조회수 1.5~2배 향상이 예상됩니다.`,
+    '하': `3개월 집중 개선을 통해 채널 조회수 2배 이상, 팔로워 30% 이상 성장이 가능합니다. 기반 세팅에 집중하는 1개월 후부터 서서히 성과가 나타나기 시작할 것입니다.`
+  };
+
+  return {
+    overall_score: score,
+    growth_potential: gp,
+    urgency,
+    diagnosis_summary,
+    problems: problems.slice(0, 3),
+    strengths: strengths.slice(0, 3),
+    action_plan: apMap[contentType] || defaultAP,
+    expected_result: expectedMap[gp]
+  };
 }
 
-async function analyze() {
+function analyze() {
   const hospital = document.getElementById('hospital').value.trim();
   const dept = document.getElementById('dept').value;
   const contentType = document.getElementById('content-type').value;
   const concern = document.getElementById('concern').value;
 
-  const apiKey = localStorage.getItem('linto_api_key') || document.getElementById('api-key-input').value.trim();
-  if (!apiKey) {
-    const err = document.getElementById('error-msg');
-    err.textContent = '상단에 Anthropic API 키를 먼저 입력하고 저장해주세요.';
-    err.style.display = 'block';
-    return;
-  }
   if (!hospital || !dept || !contentType || !concern) {
     const err = document.getElementById('error-msg');
     err.textContent = '병원명, 진료과목, 콘텐츠 유형, 가장 큰 고민은 필수 항목입니다.';
@@ -273,99 +320,14 @@ async function analyze() {
   const msgTimer = setInterval(() => {
     mi = (mi + 1) % messages.length;
     msgEl.textContent = messages[mi];
-  }, 2000);
+  }, 500);
 
-  const prompt = `당신은 병원 전문 콘텐츠 마케팅 에이전시 '린토'의 채널 진단 전문가입니다.
-아래 병원 채널 정보를 바탕으로 전문적인 진단 리포트를 작성하세요.
-
-[채널 정보]
-- 병원명: ${hospital}
-- 진료과목: ${dept}
-- 플랫폼: ${platform || '미입력'}
-- 운영기간: ${period || '미입력'}
-- 구독자/팔로워: ${subs || '미입력'}
-- 평균 조회수: ${views || '미입력'}
-- 월 업로드 횟수: ${freq || '미입력'}
-- 현재 콘텐츠 유형: ${contentType}
-- 가장 큰 고민: ${concern}
-- 추가 상황: ${detail || '없음'}
-
-다음 JSON 형식으로만 응답하세요 (다른 텍스트 없이 JSON만):
-{
-  "overall_score": 숫자(0-100),
-  "growth_potential": "상/중/하",
-  "urgency": "즉시 개선 필요/단계적 개선/현행 유지",
-  "diagnosis_summary": "3-4문장의 핵심 진단 요약. 병원명과 진료과목을 언급하고, 현재 채널의 핵심 문제와 가능성을 구체적으로 서술.",
-  "problems": [
-    {
-      "priority": "높음/중간/낮음",
-      "title": "문제 제목 (15자 이내)",
-      "desc": "구체적인 문제 설명 (2-3문장)"
-    }
-  ],
-  "strengths": [
-    {
-      "title": "강점 제목 (15자 이내)",
-      "desc": "강점 설명 (1-2문장)"
-    }
-  ],
-  "action_plan": [
-    {
-      "week": "1-2주차",
-      "title": "액션 제목",
-      "desc": "구체적인 실행 방법"
-    },
-    {
-      "week": "3-4주차",
-      "title": "액션 제목",
-      "desc": "구체적인 실행 방법"
-    },
-    {
-      "week": "2개월차",
-      "title": "액션 제목",
-      "desc": "구체적인 실행 방법"
-    },
-    {
-      "week": "3개월차",
-      "title": "액션 제목",
-      "desc": "구체적인 실행 방법"
-    }
-  ],
-  "expected_result": "3개월 후 기대 성과 (구체적인 수치 포함, 2-3문장)"
-}`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    const data = await res.json();
-    const raw = data.content[0].text.trim().replace(/^```json\s*/,'').replace(/```\s*$/,'');
-    const r = JSON.parse(raw);
-
+  setTimeout(() => {
     clearInterval(msgTimer);
     loading.style.display = 'none';
+    const r = generateDiagnosis(hospital, dept, platform, period, subs, views, freq, contentType, concern);
     renderResult(r, hospital, dept);
-
-  } catch(e) {
-    clearInterval(msgTimer);
-    loading.style.display = 'none';
-    document.getElementById('form-wrap').style.display = 'block';
-    const err = document.getElementById('error-msg');
-    err.textContent = '진단 중 오류가 발생했습니다. 다시 시도해주세요. (' + e.message + ')';
-    err.style.display = 'block';
-  }
+  }, 2200);
 }
 
 function renderResult(r, hospital, dept) {
