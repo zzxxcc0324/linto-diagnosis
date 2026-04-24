@@ -72,6 +72,11 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif
 .reset-btn:hover{background:#eee}
 
 .error-msg{background:#FCEBEB;color:#A32D2D;border-radius:10px;padding:16px;font-size:13px;margin-top:12px;display:none;line-height:1.6}
+.api-key-bar{background:#fff;border:1px solid #e8e5e0;border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:center}
+.api-key-bar input{flex:1;border:1px solid #e8e5e0;border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;outline:none;background:#fafafa}
+.api-key-bar input:focus{border-color:#5DD9C0}
+.api-key-bar button{background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
+.api-key-saved{font-size:11px;color:#5DD9C0;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -83,6 +88,13 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif
 </div>
 
 <div class="container">
+
+  <!-- API 키 설정 -->
+  <div class="api-key-bar">
+    <input id="api-key-input" type="password" placeholder="Anthropic API 키 입력 (sk-ant-...)">
+    <button onclick="saveKey()">저장</button>
+    <span class="api-key-saved" id="key-saved" style="display:none">✓ 저장됨</span>
+  </div>
 
   <!-- 입력 폼 -->
   <div id="form-wrap">
@@ -207,12 +219,29 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif
 </div>
 
 <script>
+// API 키 저장/불러오기
+(function(){
+  const saved = localStorage.getItem('linto_api_key');
+  if(saved){ document.getElementById('api-key-input').value = saved; document.getElementById('key-saved').style.display='inline'; }
+})();
+function saveKey(){
+  const k = document.getElementById('api-key-input').value.trim();
+  if(k){ localStorage.setItem('linto_api_key', k); document.getElementById('key-saved').style.display='inline'; }
+}
+
 async function analyze() {
   const hospital = document.getElementById('hospital').value.trim();
   const dept = document.getElementById('dept').value;
   const contentType = document.getElementById('content-type').value;
   const concern = document.getElementById('concern').value;
 
+  const apiKey = localStorage.getItem('linto_api_key') || document.getElementById('api-key-input').value.trim();
+  if (!apiKey) {
+    const err = document.getElementById('error-msg');
+    err.textContent = '상단에 Anthropic API 키를 먼저 입력하고 저장해주세요.';
+    err.style.display = 'block';
+    return;
+  }
   if (!hospital || !dept || !contentType || !concern) {
     const err = document.getElementById('error-msg');
     err.textContent = '병원명, 진료과목, 콘텐츠 유형, 가장 큰 고민은 필수 항목입니다.';
@@ -308,7 +337,12 @@ async function analyze() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
