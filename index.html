@@ -10,7 +10,9 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif
 .hero{background:#1a1a1a;padding:48px 24px 40px;text-align:center}
 .hero-badge{display:inline-block;background:#5DD9C0;color:#04342C;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;letter-spacing:1px;margin-bottom:16px}
 .hero-title{font-size:32px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.2;margin-bottom:8px}
-.hero-sub{font-size:13px;color:#666;line-height:1.7}
+.hero-sub{font-size:13px;color:#666;line-height:1.7;margin-bottom:28px}
+.hero-cta{display:inline-block;background:#5DD9C0;color:#04342C;font-size:15px;font-weight:700;padding:14px 32px;border-radius:30px;text-decoration:none;cursor:pointer;border:none;font-family:inherit;transition:opacity 0.15s}
+.hero-cta:hover{opacity:0.85}
 .container{max-width:600px;margin:0 auto;padding:32px 20px 80px}
 .card{background:#fff;border-radius:16px;border:1px solid #eee;padding:28px;margin-bottom:20px}
 .card-title{font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:20px;display:flex;align-items:center;gap:8px}
@@ -80,6 +82,7 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif
   <p class="hero-badge">AI CHANNEL DIAGNOSIS</p>
   <h1 class="hero-title">병원 채널 AI 진단</h1>
   <p class="hero-sub">채널 정보를 입력하면 린토 AI가<br>맞춤 진단 리포트를 즉시 생성합니다</p>
+  <button class="hero-cta" onclick="document.getElementById('form-wrap').scrollIntoView({behavior:'smooth'})">무료로 진단받기 →</button>
 </div>
 
 <div class="container">
