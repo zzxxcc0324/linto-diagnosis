@@ -3,439 +3,134 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI 채널 진단 — 린토</title>
+<title>병원 채널 AI 진단 — 린토</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;background:#f7f5f2;min-height:100vh;color:#1a1a1a}
-.hero{background:#1a1a1a;padding:48px 24px 40px;text-align:center}
-.hero-badge{display:inline-block;background:#5DD9C0;color:#04342C;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;letter-spacing:1px;margin-bottom:16px}
-.hero-title{font-size:32px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.2;margin-bottom:8px}
-.hero-sub{font-size:13px;color:#666;line-height:1.7;margin-bottom:28px}
-.hero-cta{display:inline-block;background:#5DD9C0;color:#04342C;font-size:15px;font-weight:700;padding:14px 32px;border-radius:30px;text-decoration:none;cursor:pointer;border:none;font-family:inherit;transition:opacity 0.15s}
-.hero-cta:hover{opacity:0.85}
-.container{max-width:600px;margin:0 auto;padding:32px 20px 80px}
-.card{background:#fff;border-radius:16px;border:1px solid #eee;padding:28px;margin-bottom:20px}
-.card-title{font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:20px;display:flex;align-items:center;gap:8px}
-.card-title::before{content:'';width:3px;height:16px;background:#5DD9C0;border-radius:2px;display:block}
-.field{margin-bottom:16px}
-.field label{display:block;font-size:12px;color:#999;margin-bottom:6px;font-weight:500}
-.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1px solid #e8e5e0;border-radius:10px;font-size:14px;color:#1a1a1a;background:#fafafa;outline:none;font-family:inherit}
-.field input:focus,.field select,.field textarea:focus{border-color:#5DD9C0;background:#fff}
-.field textarea{resize:none;height:80px;line-height:1.6}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.req{color:#F47BB5}
-.tip{font-size:11px;color:#bbb;margin-top:5px;line-height:1.5}
-.analyze-btn{width:100%;padding:18px;background:#1a1a1a;color:#fff;border:none;border-radius:30px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;margin-top:8px}
-.analyze-btn:hover{background:#333}
-.analyze-btn:active{transform:scale(0.98)}
-.analyze-btn:disabled{background:#ccc;cursor:not-allowed;transform:none}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;background:#0e0e0e;color:#fff;min-height:100vh}
 
-/* 로딩 */
-.loading{display:none;text-align:center;padding:48px 0}
-.loading-dot{display:inline-block;width:8px;height:8px;background:#5DD9C0;border-radius:50%;margin:0 4px;animation:bounce 1.2s infinite}
-.loading-dot:nth-child(2){animation-delay:0.2s}
-.loading-dot:nth-child(3){animation-delay:0.4s}
-@keyframes bounce{0%,80%,100%{transform:scale(0.8);opacity:0.5}40%{transform:scale(1.2);opacity:1}}
-.loading-text{font-size:14px;color:#999;margin-top:16px}
+/* 네비 */
+nav{display:flex;justify-content:space-between;align-items:center;padding:20px 32px;position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(14,14,14,0.85);backdrop-filter:blur(10px)}
+.nav-logo{font-size:16px;font-weight:900;letter-spacing:2px;color:#fff;text-decoration:none}
+.nav-cta{background:#5DD9C0;color:#04342C;font-size:13px;font-weight:700;padding:9px 20px;border-radius:20px;text-decoration:none;transition:opacity 0.15s}
+.nav-cta:hover{opacity:0.85}
 
-/* 결과 */
-.result{display:none}
-.result-header{background:#1a1a1a;border-radius:16px;padding:32px;margin-bottom:20px;text-align:center}
-.result-hospital{font-size:13px;color:#5DD9C0;margin-bottom:8px;letter-spacing:1px}
-.result-title{font-size:22px;font-weight:900;color:#fff;margin-bottom:20px}
-.score-wrap{display:flex;justify-content:center;gap:24px}
-.score-item{text-align:center}
-.score-num{font-size:36px;font-weight:900;display:block;line-height:1}
-.score-label{font-size:11px;color:#555;margin-top:6px}
-.divider-v{width:1px;background:#2a2a2a}
+/* 히어로 */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(93,217,192,0.12) 0%,transparent 70%);pointer-events:none}
 
-.report-section{background:#fff;border-radius:16px;border:1px solid #eee;padding:24px;margin-bottom:16px}
-.report-section-title{font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:16px;padding-left:10px;border-left:3px solid #5DD9C0}
-.report-content{font-size:14px;color:#444;line-height:1.9;white-space:pre-wrap}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(93,217,192,0.12);border:1px solid rgba(93,217,192,0.3);color:#5DD9C0;font-size:11px;font-weight:700;padding:6px 16px;border-radius:20px;letter-spacing:1.5px;margin-bottom:32px}
+.badge-dot{width:6px;height:6px;background:#5DD9C0;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 
-.diagnosis-item{padding:14px 0;border-bottom:1px solid #f5f5f5}
-.diagnosis-item:last-child{border:none}
-.diagnosis-label{font-size:11px;color:#aaa;margin-bottom:4px;letter-spacing:1px}
-.diagnosis-value{font-size:14px;color:#1a1a1a;font-weight:500;line-height:1.6}
+.hero-title{font-size:clamp(36px,7vw,64px);font-weight:900;line-height:1.1;letter-spacing:-2px;margin-bottom:20px}
+.hero-title span{color:#5DD9C0}
 
-.priority-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-right:6px;vertical-align:middle}
-.p-high{background:#FCEBEB;color:#A32D2D}
-.p-mid{background:#FAEEDA;color:#633806}
-.p-low{background:#EAF3DE;color:#27500A}
+.hero-sub{font-size:clamp(14px,2vw,17px);color:#888;line-height:1.8;margin-bottom:48px;max-width:480px}
 
-.action-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #f5f5f5;align-items:flex-start}
-.action-item:last-child{border:none}
-.action-num{width:28px;height:28px;background:#1a1a1a;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
-.action-text{font-size:14px;color:#333;line-height:1.7}
-.action-text strong{color:#1a1a1a;display:block;margin-bottom:2px}
+.hero-btns{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:320px}
+.btn-primary{display:block;width:100%;background:#5DD9C0;color:#04342C;font-size:16px;font-weight:800;padding:18px 32px;border-radius:50px;text-decoration:none;transition:transform 0.15s,opacity 0.15s;letter-spacing:-0.3px}
+.btn-primary:hover{transform:translateY(-2px);opacity:0.9}
+.btn-secondary{display:block;width:100%;background:transparent;color:#666;font-size:13px;padding:12px;border-radius:50px;text-decoration:none;border:1px solid #2a2a2a;transition:border-color 0.15s,color 0.15s}
+.btn-secondary:hover{border-color:#444;color:#aaa}
 
-.reset-btn{width:100%;padding:14px;background:#f7f5f2;color:#888;border:1px solid #e8e5e0;border-radius:30px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:8px}
-.reset-btn:hover{background:#eee}
+.hero-proof{margin-top:64px;display:flex;gap:40px;justify-content:center;flex-wrap:wrap}
+.proof-item{text-align:center}
+.proof-num{font-size:28px;font-weight:900;color:#fff;display:block;letter-spacing:-1px}
+.proof-num span{color:#5DD9C0}
+.proof-label{font-size:11px;color:#555;margin-top:4px}
 
-.error-msg{background:#FCEBEB;color:#A32D2D;border-radius:10px;padding:16px;font-size:13px;margin-top:12px;display:none;line-height:1.6}
+/* 특징 섹션 */
+.features{padding:100px 24px;max-width:680px;margin:0 auto}
+.section-label{font-size:11px;color:#5DD9C0;letter-spacing:2px;font-weight:700;margin-bottom:16px}
+.section-title{font-size:clamp(24px,4vw,36px);font-weight:900;line-height:1.2;letter-spacing:-1px;margin-bottom:56px}
+
+.feature-list{display:flex;flex-direction:column;gap:24px}
+.feature-item{background:#161616;border:1px solid #222;border-radius:16px;padding:24px;display:flex;gap:20px;align-items:flex-start;transition:border-color 0.2s}
+.feature-item:hover{border-color:#333}
+.feature-icon{width:44px;height:44px;background:rgba(93,217,192,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.feature-text h3{font-size:15px;font-weight:700;margin-bottom:6px}
+.feature-text p{font-size:13px;color:#666;line-height:1.7}
+
+/* 최종 CTA */
+.final-cta{padding:80px 24px 120px;text-align:center}
+.final-cta-box{background:linear-gradient(135deg,#1a1a1a 0%,#111 100%);border:1px solid #2a2a2a;border-radius:24px;padding:56px 32px;max-width:560px;margin:0 auto;position:relative;overflow:hidden}
+.final-cta-box::before{content:'';position:absolute;top:-100px;right:-100px;width:300px;height:300px;background:radial-gradient(circle,rgba(93,217,192,0.08) 0%,transparent 70%);pointer-events:none}
+.final-cta-box p.label{font-size:11px;color:#5DD9C0;letter-spacing:2px;font-weight:700;margin-bottom:16px}
+.final-cta-box h2{font-size:clamp(22px,4vw,30px);font-weight:900;letter-spacing:-1px;margin-bottom:12px;line-height:1.2}
+.final-cta-box p.desc{font-size:13px;color:#666;line-height:1.7;margin-bottom:32px}
+.final-btns{display:flex;flex-direction:column;gap:10px}
 </style>
 </head>
 <body>
 
-<div class="hero">
-  <p class="hero-badge">AI CHANNEL DIAGNOSIS</p>
-  <h1 class="hero-title">병원 채널 AI 진단</h1>
-  <p class="hero-sub">채널 정보를 입력하면 린토 AI가<br>맞춤 진단 리포트를 즉시 생성합니다</p>
-  <button class="hero-cta" onclick="document.getElementById('form-wrap').scrollIntoView({behavior:'smooth'})">무료로 진단받기 →</button>
-</div>
+<nav>
+  <a class="nav-logo" href="https://linto.kr" target="_blank">LINTO</a>
+  <a class="nav-cta" href="diagnosis.html">무료 진단받기</a>
+</nav>
 
-<div class="container">
-
-  <!-- 입력 폼 -->
-  <div id="form-wrap">
-    <div class="card">
-      <p class="card-title">병원 기본 정보</p>
-      <div class="row2">
-        <div class="field">
-          <label>병원명 <span class="req">*</span></label>
-          <input id="hospital" type="text" placeholder="강남 OO피부과">
-        </div>
-        <div class="field">
-          <label>진료과목 <span class="req">*</span></label>
-          <select id="dept">
-            <option value="">선택</option>
-            <option>피부과</option>
-            <option>성형외과</option>
-            <option>치과</option>
-            <option>한의원</option>
-            <option>정형외과</option>
-            <option>내과</option>
-            <option>기타</option>
-          </select>
-        </div>
-      </div>
-      <div class="field">
-        <label>유튜브 / 인스타그램 채널 주소</label>
-        <input id="channel" type="text" placeholder="https://youtube.com/@...">
-      </div>
-    </div>
-
-    <div class="card">
-      <p class="card-title">채널 현황</p>
-      <div class="row3">
-        <div class="field">
-          <label>구독자/팔로워 수</label>
-          <input id="subs" type="text" placeholder="예: 320명">
-        </div>
-        <div class="field">
-          <label>평균 조회수</label>
-          <input id="views" type="text" placeholder="예: 150뷰">
-        </div>
-        <div class="field">
-          <label>월 업로드 횟수</label>
-          <input id="freq" type="text" placeholder="예: 4회">
-        </div>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label>운영 중인 플랫폼</label>
-          <select id="platform">
-            <option value="">선택</option>
-            <option>유튜브만</option>
-            <option>인스타그램만</option>
-            <option>유튜브 + 인스타</option>
-            <option>아직 없음 (새로 시작)</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>운영 기간</label>
-          <select id="period">
-            <option value="">선택</option>
-            <option>1개월 미만</option>
-            <option>1~3개월</option>
-            <option>3~6개월</option>
-            <option>6개월~1년</option>
-            <option>1년 이상</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <p class="card-title">콘텐츠 현황</p>
-      <div class="field">
-        <label>주로 올리는 콘텐츠 유형 <span class="req">*</span></label>
-        <select id="content-type">
-          <option value="">선택</option>
-          <option>시술 소개 / 병원 광고형</option>
-          <option>원장님 의학 정보 강의형</option>
-          <option>환자 고민 해결 / 공감형</option>
-          <option>비포&애프터 케이스</option>
-          <option>브이로그 / 일상형</option>
-          <option>아직 콘텐츠 없음</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>가장 큰 고민 <span class="req">*</span></label>
-        <select id="concern">
-          <option value="">선택</option>
-          <option>조회수가 너무 낮아요</option>
-          <option>구독자/팔로워가 안 늘어요</option>
-          <option>영상 올려도 문의가 없어요</option>
-          <option>어떤 콘텐츠를 해야 할지 모르겠어요</option>
-          <option>업체를 써봤는데 효과가 없었어요</option>
-          <option>채널을 새로 시작하고 싶어요</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>추가 상황 (선택)</label>
-        <textarea id="detail" placeholder="예: 유튜브를 6개월 운영했는데 조회수가 50뷰 이하입니다. 썸네일은 시술명으로만 만들었어요."></textarea>
-        <p class="tip">구체적으로 쓸수록 더 정확한 진단이 나와요</p>
-      </div>
-    </div>
-
-    <button class="analyze-btn" onclick="analyze()">AI 채널 진단 시작하기 →</button>
-    <div class="error-msg" id="error-msg"></div>
+<section class="hero">
+  <div class="badge"><span class="badge-dot"></span>AI CHANNEL DIAGNOSIS</div>
+  <h1 class="hero-title">우리 병원 채널,<br>왜 안 되는지<br><span>AI가 알려드립니다</span></h1>
+  <p class="hero-sub">채널 정보만 입력하면<br>린토 AI가 문제점·강점·액션 플랜을 즉시 진단</p>
+  <div class="hero-btns">
+    <a class="btn-primary" href="diagnosis.html">지금 무료로 진단받기 →</a>
+    <a class="btn-secondary" href="https://linto.kr" target="_blank">린토 홈페이지 보러가기</a>
   </div>
-
-  <!-- 로딩 -->
-  <div class="loading" id="loading">
-    <div>
-      <span class="loading-dot"></span>
-      <span class="loading-dot"></span>
-      <span class="loading-dot"></span>
+  <div class="hero-proof">
+    <div class="proof-item">
+      <span class="proof-num"><span>1</span>억뷰+</span>
+      <p class="proof-label">누적 조회수</p>
     </div>
-    <p class="loading-text" id="loading-text">채널 정보를 분석하는 중입니다...</p>
+    <div class="proof-item">
+      <span class="proof-num"><span>284</span>만뷰</span>
+      <p class="proof-label">단일 영상 최고 기록</p>
+    </div>
+    <div class="proof-item">
+      <span class="proof-num"><span>3</span>배</span>
+      <p class="proof-label">매출 성장</p>
+    </div>
   </div>
+</section>
 
-  <!-- 결과 -->
-  <div class="result" id="result"></div>
-
-</div>
-
-<script>
-function generateDiagnosis(hospital, dept, platform, period, subs, views, freq, contentType, concern) {
-  let score = 55;
-  score += ({  '유튜브 + 인스타': 12, '유튜브만': 5, '인스타그램만': 3, '아직 없음 (새로 시작)': -15 }[platform] || 0);
-  score += ({ '1년 이상': 10, '6개월~1년': 6, '3~6개월': 2, '1~3개월': -4, '1개월 미만': -10 }[period] || 0);
-  score += ({ '환자 고민 해결 / 공감형': 15, '원장님 의학 정보 강의형': 10, '비포&애프터 케이스': 5, '브이로그 / 일상형': 0, '시술 소개 / 병원 광고형': -15, '아직 콘텐츠 없음': -20 }[contentType] || 0);
-  const subsNum = parseInt((subs || '0').replace(/[^0-9]/g, '')) || 0;
-  if (subsNum > 10000) score += 15; else if (subsNum > 1000) score += 10; else if (subsNum > 300) score += 5; else if (subsNum > 0 && subsNum <= 100) score -= 5;
-  score = Math.max(12, Math.min(92, score));
-
-  const gp = score >= 70 ? '상' : score >= 45 ? '중' : '하';
-  const urgency = score < 40 ? '즉시 개선 필요' : score < 65 ? '단계적 개선' : '현행 유지';
-
-  const summaryMap = {
-    '시술 소개 / 병원 광고형': `${hospital}의 채널은 현재 광고성 콘텐츠 위주로 운영되고 있어 알고리즘 노출과 시청자 반응 모두 낮은 상태입니다. ${dept} 분야에서 환자들이 실제로 검색하는 고민 해결형 콘텐츠로의 전환이 핵심 과제입니다. 방향성을 바꾸면 3개월 내 가시적인 성장이 가능합니다.`,
-    '환자 고민 해결 / 공감형': `${hospital}은 환자 공감형 콘텐츠를 운영 중으로 알고리즘 친화적인 방향을 잘 잡고 있습니다. ${dept} 분야에서 검색 유입을 극대화하려면 제목과 썸네일 최적화, 업로드 주기 안정화가 병행되어야 합니다. 현재 기반을 유지하며 최적화에 집중하면 빠른 성장이 기대됩니다.`,
-    '원장님 의학 정보 강의형': `${hospital}의 의학 정보 강의형 콘텐츠는 전문성과 신뢰를 구축하는 데 효과적입니다. ${dept} 원장님의 전문 지식을 환자 눈높이에 맞는 언어로 전달하는 것이 핵심이며, 검색 키워드 기반의 제목 설정이 조회수 상승의 열쇠입니다. SEO 최적화를 병행하면 빠른 채널 성장이 가능합니다.`,
-    '비포&애프터 케이스': `${hospital}의 비포&애프터 콘텐츠는 시술 결과를 직관적으로 보여줘 잠재 환자의 신뢰를 높이는 강점이 있습니다. ${dept} 특성상 케이스 설명에 교육적 요소를 더해야 알고리즘 노출이 향상됩니다. 스토리텔링 강화와 검색 최적화를 병행하면 문의 전환율을 크게 높일 수 있습니다.`,
-    '브이로그 / 일상형': `${hospital}의 브이로그형 콘텐츠는 병원 분위기와 신뢰감 전달에 유용하지만, 검색 알고리즘에서 노출되기 어려운 구조입니다. ${dept}를 찾는 잠재 환자들이 검색하는 키워드와 고민을 반영한 콘텐츠 믹스 전략이 필요합니다. 정보형 콘텐츠를 30% 이상 혼합하면 균형 잡힌 성장이 가능합니다.`,
-    '아직 콘텐츠 없음': `${hospital}은 아직 채널 운영을 시작하지 않아 처음부터 올바른 전략으로 시작할 수 있는 유리한 위치에 있습니다. ${dept} 분야 경쟁 채널 분석을 바탕으로 차별화된 콘텐츠 포지셔닝을 잡는 것이 첫 단계입니다. 초반 3개월의 방향 설정이 채널 전체 성패를 결정하므로 전략적 접근이 필요합니다.`
-  };
-  const diagnosis_summary = summaryMap[contentType] || `${hospital} ${dept} 채널 진단을 완료했습니다. 현재 상태를 분석한 결과 핵심 개선 포인트가 도출되었습니다. 아래 액션 플랜을 순서대로 실행하면 3개월 내 유의미한 성과를 기대할 수 있습니다.`;
-
-  const problems = [];
-  if (contentType === '시술 소개 / 병원 광고형') problems.push({ priority: '높음', title: '광고성 콘텐츠 구조', desc: `시술 소개 위주 콘텐츠는 유튜브·인스타 알고리즘에서 낮은 평가를 받습니다. 잠재 환자가 검색하는 고민 해결형 콘텐츠로 전환하면 노출량이 3~5배 증가할 수 있습니다.` });
-  if (contentType === '아직 콘텐츠 없음') problems.push({ priority: '높음', title: '콘텐츠 부재', desc: `운영 중인 콘텐츠가 없어 검색 노출 및 잠재 환자 유입이 전무합니다. 경쟁 병원 대비 디지털 접점이 없으므로 빠른 시작이 필요합니다.` });
-  const cp = { '조회수가 너무 낮아요': { priority: '높음', title: '썸네일·제목 최적화 부재', desc: '조회수 저하의 가장 큰 원인은 낮은 클릭률(CTR)입니다. 환자 검색 의도와 맞지 않는 제목과 시술명 위주 썸네일이 클릭을 막고 있습니다.' }, '구독자/팔로워가 안 늘어요': { priority: '높음', title: '채널 정체성 불명확', desc: '구독자가 늘지 않는 것은 채널 포지셔닝이 불명확하거나 콘텐츠 편차가 크기 때문입니다. 특정 시청자 타겟을 정하고 일관된 방향성을 잡아야 합니다.' }, '영상 올려도 문의가 없어요': { priority: '높음', title: 'CTA 및 전환 설계 미흡', desc: '조회수와 문의 사이의 연결고리(CTA)가 부족합니다. 영상 내 상담 유도 멘트, 링크 배치, 카카오채널 연동 등 전환 설계가 필요합니다.' }, '어떤 콘텐츠를 해야 할지 모르겠어요': { priority: '중간', title: '콘텐츠 전략 부재', desc: '데이터 없이 감으로 콘텐츠를 만들고 있어 효율이 낮습니다. 경쟁 채널 분석과 키워드 리서치 기반의 콘텐츠 캘린더 수립이 필요합니다.' }, '업체를 써봤는데 효과가 없었어요': { priority: '중간', title: '제작-전략 불일치', desc: '영상 제작과 마케팅 전략이 분리되어 있어 효과가 반감됩니다. 기획 단계부터 검색 최적화와 전환을 고려한 통합 전략이 필요합니다.' }, '채널을 새로 시작하고 싶어요': { priority: '중간', title: '채널 포지셔닝 설계 필요', desc: '새 채널 시작 전 경쟁 분석과 차별화 포인트 설정이 선행되어야 합니다. 초반 3개월의 방향이 채널 전체 성장 궤도를 결정합니다.' } };
-  if (cp[concern]) problems.push(cp[concern]);
-  if (platform === '아직 없음 (새로 시작)' || !platform) problems.push({ priority: '중간', title: '디지털 채널 부재', desc: `운영 중인 ${dept} 채널이 없어 온라인 신뢰 구축이 어렵습니다. 유튜브 또는 인스타그램 중 하나를 먼저 집중 공략하는 전략을 추천합니다.` });
-  if (problems.length === 0) problems.push({ priority: '낮음', title: '업로드 일관성 강화', desc: '꾸준한 업로드 주기를 유지하면 알고리즘 노출 빈도가 높아집니다. 월 최소 4회 이상 규칙적인 업로드를 목표로 하세요.' });
-
-  const strengths = [];
-  const cs = { '환자 고민 해결 / 공감형': { title: '공감형 콘텐츠 방향성', desc: '환자 고민 해결형 콘텐츠는 알고리즘 친화적이며 잠재 환자의 검색 의도와 일치합니다. 이 방향성은 유지하되 SEO를 강화하면 됩니다.' }, '원장님 의학 정보 강의형': { title: '전문성 기반 신뢰 콘텐츠', desc: '의학 정보 강의형은 원장님의 전문성을 드러내 브랜드 신뢰도를 높입니다. 잠재 환자가 병원을 선택할 때 큰 영향을 미치는 요소입니다.' }, '비포&애프터 케이스': { title: '결과 중심 신뢰 구축', desc: '실제 케이스를 보여주는 콘텐츠는 잠재 환자의 의사결정을 돕는 강력한 도구입니다. 시술 결과를 직접 확인할 수 있어 문의 전환율이 높습니다.' } };
-  if (cs[contentType]) strengths.push(cs[contentType]);
-  if (period === '1년 이상' || period === '6개월~1년') strengths.push({ title: '운영 데이터 축적', desc: '쌓인 채널 히스토리는 새 채널 대비 알고리즘 신뢰도가 높습니다. 이 자산을 활용한 최적화가 가능합니다.' });
-  if (platform === '유튜브 + 인스타') strengths.push({ title: '멀티플랫폼 운영', desc: '유튜브와 인스타그램을 함께 운영하면 검색 유입과 팔로워 유입을 동시에 노릴 수 있습니다. 콘텐츠 리퍼포징으로 제작 효율도 높일 수 있습니다.' });
-  strengths.push({ title: `${dept} 콘텐츠 수요 보유`, desc: `${dept}은 온라인 검색 수요가 높은 분야로, 제대로 된 전략을 적용하면 빠른 성장이 가능합니다. 유튜브·인스타 모두 관련 키워드 검색량이 꾸준합니다.` });
-
-  const apMap = {
-    '시술 소개 / 병원 광고형': [
-      { week: '1-2주차', title: '콘텐츠 방향 전환 기획', desc: '경쟁 채널 상위 영상 10개를 분석해 환자들이 자주 검색하는 고민 키워드 20개를 추출합니다. 기존 시술 소개 콘텐츠를 환자 고민 해결형으로 리포지셔닝하는 기획안을 작성하세요.' },
-      { week: '3-4주차', title: '키워드 기반 영상 2편 제작', desc: '추출한 키워드 중 검색량 상위 2개 주제로 영상을 제작합니다. 제목에 환자 검색어를 그대로 넣고, 썸네일은 숫자+감정 조합으로 구성하세요.' },
-      { week: '2개월차', title: 'CTA 및 전환 흐름 세팅', desc: '모든 영상 마지막 30초에 상담 유도 멘트를 추가하고, 카카오채널 링크를 영상 설명란 첫 줄에 배치합니다. 인스타 스토리와 유튜브를 연계한 교차 노출도 시작하세요.' },
-      { week: '3개월차', title: '성과 분석 및 확장', desc: '3개월간 제작한 영상의 조회수·클릭률·체류시간 데이터를 분석합니다. 성과가 좋은 주제 패턴을 찾아 월 4~6편 규모로 콘텐츠를 확장하세요.' }
-    ],
-    '환자 고민 해결 / 공감형': [
-      { week: '1-2주차', title: '썸네일·제목 A/B 테스트', desc: '기존 업로드 영상의 썸네일을 환자 감정 키워드가 담긴 버전으로 교체 테스트합니다. 제목은 "OO하면 OO된다" 패턴으로 클릭률을 높이세요.' },
-      { week: '3-4주차', title: '상위 노출 키워드 공략', desc: `유튜브 검색창에 ${dept} 관련 키워드를 입력해 자동완성 검색어를 수집합니다. 월 검색량 1,000~10,000 구간의 중간 경쟁 키워드로 영상 2편을 제작하세요.` },
-      { week: '2개월차', title: '카카오채널 연동 및 CTA 강화', desc: '영상 내 카카오채널 링크를 적극 노출하고, 영상 종료 후 상담 신청으로 이어지는 전환 흐름을 만듭니다. 인스타 스토리에 "자세히 보기" 링크를 연결하세요.' },
-      { week: '3개월차', title: '조회수 상위 패턴 반복', desc: '3개월 데이터에서 조회수 상위 30% 영상의 공통점을 분석합니다. 주제·제목 패턴·길이·업로드 요일 등을 표준화해 콘텐츠 제작 효율을 높이세요.' }
-    ]
-  };
-  const defaultAP = [
-    { week: '1-2주차', title: '채널 현황 감사 및 키워드 리서치', desc: `${dept} 분야 경쟁 채널 상위 10개를 분석하고, 환자들이 자주 검색하는 키워드 20개를 추출합니다. 현재 채널의 썸네일·제목·설명을 함께 점검하세요.` },
-    { week: '3-4주차', title: '핵심 콘텐츠 2편 제작', desc: '리서치한 키워드 중 검색량이 높고 경쟁이 중간인 주제 2개로 영상을 제작합니다. 제목에 검색 키워드를 그대로 넣고, 썸네일은 텍스트+감정 얼굴 조합으로 구성하세요.' },
-    { week: '2개월차', title: '전환 흐름 구축', desc: '모든 콘텐츠에 카카오채널 상담 링크를 추가하고, 영상 마지막 30초에 CTA 멘트를 넣습니다. 인스타와 유튜브를 교차 연동해 팔로워 유입 경로를 다각화하세요.' },
-    { week: '3개월차', title: '데이터 기반 최적화', desc: '3개월간 쌓인 데이터에서 성과 좋은 콘텐츠 패턴을 분석합니다. 조회수·클릭률·문의 전환율 기준으로 다음 분기 콘텐츠 전략을 수립하세요.' }
-  ];
-
-  const expectedMap = {
-    '상': `3개월 후 구독자/팔로워 3배 이상 성장과 월 5건 이상의 채널 유입 문의를 기대할 수 있습니다. 검색 노출 키워드가 10개 이상 확보되며, 영상 평균 조회수도 현재 대비 2~3배 향상될 것입니다.`,
-    '중': `3개월 후 구독자/팔로워 50% 이상 성장과 월 2~3건의 채널 유입 문의 발생을 기대할 수 있습니다. 핵심 키워드 5개 이상 상위 노출 확보 및 영상 평균 조회수 1.5~2배 향상이 예상됩니다.`,
-    '하': `3개월 집중 개선을 통해 채널 조회수 2배 이상, 팔로워 30% 이상 성장이 가능합니다. 기반 세팅에 집중하는 1개월 후부터 서서히 성과가 나타나기 시작할 것입니다.`
-  };
-
-  return {
-    overall_score: score,
-    growth_potential: gp,
-    urgency,
-    diagnosis_summary,
-    problems: problems.slice(0, 3),
-    strengths: strengths.slice(0, 3),
-    action_plan: apMap[contentType] || defaultAP,
-    expected_result: expectedMap[gp]
-  };
-}
-
-function analyze() {
-  const hospital = document.getElementById('hospital').value.trim();
-  const dept = document.getElementById('dept').value;
-  const contentType = document.getElementById('content-type').value;
-  const concern = document.getElementById('concern').value;
-
-  if (!hospital || !dept || !contentType || !concern) {
-    const err = document.getElementById('error-msg');
-    err.textContent = '병원명, 진료과목, 콘텐츠 유형, 가장 큰 고민은 필수 항목입니다.';
-    err.style.display = 'block';
-    return;
-  }
-  document.getElementById('error-msg').style.display = 'none';
-
-  const channel = document.getElementById('channel').value.trim();
-  const subs = document.getElementById('subs').value.trim();
-  const views = document.getElementById('views').value.trim();
-  const freq = document.getElementById('freq').value.trim();
-  const platform = document.getElementById('platform').value;
-  const period = document.getElementById('period').value;
-  const detail = document.getElementById('detail').value.trim();
-
-  document.getElementById('form-wrap').style.display = 'none';
-  const loading = document.getElementById('loading');
-  loading.style.display = 'block';
-
-  const messages = [
-    '채널 정보를 분석하는 중입니다...',
-    '콘텐츠 구조를 진단하는 중입니다...',
-    '맞춤 전략을 수립하는 중입니다...',
-    '진단 리포트를 작성하는 중입니다...'
-  ];
-  let mi = 0;
-  const msgEl = document.getElementById('loading-text');
-  const msgTimer = setInterval(() => {
-    mi = (mi + 1) % messages.length;
-    msgEl.textContent = messages[mi];
-  }, 500);
-
-  setTimeout(() => {
-    clearInterval(msgTimer);
-    loading.style.display = 'none';
-    const r = generateDiagnosis(hospital, dept, platform, period, subs, views, freq, contentType, concern);
-    renderResult(r, hospital, dept);
-  }, 2200);
-}
-
-function renderResult(r, hospital, dept) {
-  const scoreColor = r.overall_score >= 70 ? '#5DD9C0' : r.overall_score >= 40 ? '#EF9F27' : '#E24B4A';
-  const potentialColor = r.growth_potential === '상' ? '#5DD9C0' : r.growth_potential === '중' ? '#EF9F27' : '#E24B4A';
-
-  const problemsHTML = r.problems.map(p => `
-    <div class="diagnosis-item">
-      <div class="diagnosis-label">
-        <span class="priority-badge ${p.priority==='높음'?'p-high':p.priority==='중간'?'p-mid':'p-low'}">${p.priority}</span>
-        ${p.title}
-      </div>
-      <div class="diagnosis-value">${p.desc}</div>
-    </div>
-  `).join('');
-
-  const strengthsHTML = r.strengths.map(s => `
-    <div class="diagnosis-item">
-      <div class="diagnosis-label" style="color:#5DD9C0">✓ ${s.title}</div>
-      <div class="diagnosis-value">${s.desc}</div>
-    </div>
-  `).join('');
-
-  const actionHTML = r.action_plan.map((a, i) => `
-    <div class="action-item">
-      <div class="action-num">${i+1}</div>
-      <div class="action-text">
-        <strong>${a.week} · ${a.title}</strong>
-        ${a.desc}
+<section class="features">
+  <p class="section-label">HOW IT WORKS</p>
+  <h2 class="section-title">3분 입력으로<br>전문가급 진단 리포트</h2>
+  <div class="feature-list">
+    <div class="feature-item">
+      <div class="feature-icon">📋</div>
+      <div class="feature-text">
+        <h3>채널 현황 입력</h3>
+        <p>병원명·진료과목·콘텐츠 유형·고민을 선택하면 끝. 복잡한 데이터 분석 없이도 정확한 진단이 가능합니다.</p>
       </div>
     </div>
-  `).join('');
-
-  const resultEl = document.getElementById('result');
-  resultEl.innerHTML = `
-    <div class="result-header">
-      <p class="result-hospital">${hospital} · ${dept}</p>
-      <p class="result-title">AI 채널 진단 리포트</p>
-      <div class="score-wrap">
-        <div class="score-item">
-          <span class="score-num" style="color:${scoreColor}">${r.overall_score}</span>
-          <p class="score-label">종합 점수</p>
-        </div>
-        <div class="divider-v"></div>
-        <div class="score-item">
-          <span class="score-num" style="color:${potentialColor}">${r.growth_potential}</span>
-          <p class="score-label">성장 가능성</p>
-        </div>
-        <div class="divider-v"></div>
-        <div class="score-item">
-          <span class="score-num" style="color:#F47BB5;font-size:16px;padding-top:10px">${r.urgency}</span>
-          <p class="score-label">개선 우선순위</p>
-        </div>
+    <div class="feature-item">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-text">
+        <h3>AI 채널 진단</h3>
+        <p>알고리즘 구조, 콘텐츠 방향성, 전환 흐름을 종합 분석해 종합 점수·문제점·강점을 즉시 도출합니다.</p>
       </div>
     </div>
-
-    <div class="report-section">
-      <p class="report-section-title">진단 요약</p>
-      <p class="report-content">${r.diagnosis_summary}</p>
-    </div>
-
-    <div class="report-section">
-      <p class="report-section-title">발견된 문제점</p>
-      ${problemsHTML}
-    </div>
-
-    <div class="report-section">
-      <p class="report-section-title">채널의 강점</p>
-      ${strengthsHTML}
-    </div>
-
-    <div class="report-section">
-      <p class="report-section-title">맞춤 액션 플랜</p>
-      ${actionHTML}
-    </div>
-
-    <div class="report-section">
-      <p class="report-section-title">3개월 후 기대 성과</p>
-      <p class="report-content">${r.expected_result}</p>
-    </div>
-
-    <div class="report-section" style="background:#1a1a1a;border-color:#1a1a1a;text-align:center">
-      <p style="color:#5DD9C0;font-size:11px;letter-spacing:2px;margin-bottom:8px">LINTO</p>
-      <p style="color:#fff;font-size:16px;font-weight:700;margin-bottom:6px">전문가 상담으로 더 빠르게</p>
-      <p style="color:#666;font-size:13px;margin-bottom:20px;line-height:1.7">AI 진단을 바탕으로 린토 전문가와<br>1:1 전략 미팅을 진행해보세요</p>
-      <p style="color:#5DD9C0;font-size:13px;margin-bottom:24px">누적 1억뷰+ · 단일 영상 284만뷰 · 매출 3배</p>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <a href="https://smore.im/form/Bh9byTK3Uo" target="_blank" style="display:block;background:#5DD9C0;color:#04342C;text-decoration:none;padding:15px;border-radius:30px;font-size:15px;font-weight:700">무료 전략 상담 신청하기 →</a>
-        <a href="https://linto.kr" target="_blank" style="display:block;background:transparent;color:#888;text-decoration:none;padding:12px;border-radius:30px;font-size:13px;border:1px solid #333">린토 홈페이지 보러가기</a>
+    <div class="feature-item">
+      <div class="feature-icon">🚀</div>
+      <div class="feature-text">
+        <h3>맞춤 액션 플랜</h3>
+        <p>1-2주차부터 3개월까지 단계별 실행 가이드를 제공합니다. 내일 바로 실행할 수 있는 구체적인 내용으로만 구성됩니다.</p>
       </div>
     </div>
+  </div>
+</section>
 
-    <button class="reset-btn" onclick="reset()">← 다시 진단하기</button>
-  `;
+<section class="final-cta">
+  <div class="final-cta-box">
+    <p class="label">FREE DIAGNOSIS</p>
+    <h2>지금 바로 무료로<br>진단받아보세요</h2>
+    <p class="desc">API 키도 로그인도 필요 없습니다.<br>3분이면 채널의 문제와 해답이 나옵니다.</p>
+    <div class="final-btns">
+      <a class="btn-primary" href="diagnosis.html">병원 채널 AI 진단 시작하기 →</a>
+      <a class="btn-secondary" href="https://smore.im/form/Bh9byTK3Uo" target="_blank">전문가 상담 신청하기</a>
+    </div>
+  </div>
+</section>
 
-  resultEl.style.display = 'block';
-  window.scrollTo(0, 0);
-}
-
-function reset() {
-  document.getElementById('result').style.display = 'none';
-  document.getElementById('result').innerHTML = '';
-  document.getElementById('form-wrap').style.display = 'block';
-  window.scrollTo(0, 0);
-}
-</script>
 </body>
 </html>
